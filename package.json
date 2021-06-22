@@ -1,0 +1,8 @@
+{
+  "name": "nai-lore-helper",
+  "author": {
+    "name": "Taleir of Deynai"
+  },
+  "sideEffects": false,
+  "dependencies": {}
+}

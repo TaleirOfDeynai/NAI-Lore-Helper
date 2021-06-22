@@ -1,0 +1,9 @@
+node_modules/**
+build/**
+scripts/**
+*.lorebook
+
+package-lock.json
+yarn.lock
+
+jasco.js
