@@ -181,6 +181,7 @@ const loreBook = buildEntries({
   ]
 });
 
+// This all just writes the output to the filesystem.
 fs.writeFile(
   "./example.lorebook",
   JSON.stringify(loreBook, undefined, 2),
