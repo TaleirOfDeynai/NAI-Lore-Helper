@@ -195,7 +195,7 @@ exports.WITH = (left, right) => {
 exports.WITHOUT = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`(?:${reRight}(?<!${reLeft}.*?)(?!.*?${reLeft}))`);
+  return exports.toEscaped(`(?:${reLeft}(?<!${reRight}.*?)(?!.*?${reRight}))`);
 };
 
 exports.NEAR = asExtBinaryOp(
