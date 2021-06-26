@@ -36,7 +36,8 @@ const naiEntryDefaults = {
 const tlgBuildableDefaults = {
   ...naiEntryDefaults,
   subOp: matching.AND,
-  priorityDelta: -1
+  priorityDelta: -1,
+  searchDelta: 0
 };
 
 /**
@@ -76,6 +77,7 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
   const {
     subOp: defOp,
     priorityDelta: defPriorityDelta,
+    searchDelta: defSearchDelta,
     ...naiDefaults
   } = defaultsForEntry;
 
@@ -88,6 +90,7 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
     subEntries: childEntries = [],
     subOp: parentOp = baseOp,
     priorityDelta = defPriorityDelta,
+    searchDelta = defSearchDelta,
     contextConfig: contextOverrides,
     ...entryOverrides
   } = entry;
@@ -117,7 +120,9 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
   if (childEntries.length === 0) return;
 
   // We don't want to propagate the `forceActivation` override, if present.
-  const childEntryConfig = { ...defaultsForEntry, ...entryOverrides };
+  // We'll also apply the `searchDelta` delta here for the child entries.
+  const searchRange = Math.max(Math.min(entryConfig.searchRange + searchDelta, 10000), 512);
+  const childEntryConfig = { ...defaultsForEntry, ...entryOverrides, searchRange };
   // If a `priorityDelta` was set, we apply it here for the child entries.
   const childPriority = contextConfig.budgetPriority + priorityDelta;
   const childContextConfig = { ...contextConfig, budgetPriority: childPriority };
