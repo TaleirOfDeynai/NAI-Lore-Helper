@@ -1,3 +1,6 @@
+/** The primative data-types. */
+type Primatives = number | string | boolean | Function | {};
+
 namespace NAI {
 
   interface ContextConfig {

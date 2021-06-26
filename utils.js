@@ -25,6 +25,17 @@ exports.ident = (value) => value;
  */
 exports.asArray = (value) => Array.isArray(value) ? value : [value];
 
+/**
+ * Creates a strongly-typed tuple of any size, but supports only simpler
+ * primatives: `number`, `string`, `boolean`, functions, and plain objects.
+ * 
+ * @template {readonly Primatives[]} T
+ * @param {T} args
+ * @returns {[...T]}
+ */
+// @ts-ignore - The `readonly` modifier is only used to infer literal types.
+exports.tuple = (...args) => args;
+
 exports.is = {
   /** @type {TLG.TypePredicate<Function>} */
   function: (value) => typeof value === "function",
