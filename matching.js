@@ -173,6 +173,20 @@ exports.AND = (left, right) => {
 };
 
 /**
+ * Matches `left` when `right` does NOT appear together with it, within the searched text.
+ * 
+ * @param {TLG.Phrase} left
+ * @param {TLG.Phrase} right
+ * @returns {TLG.EscapedRegex}
+ * 
+ */
+ exports.EXCLUDING = (left, right) => {
+  const reLeft = exports.asEscaped(left);
+  const reRight = exports.asEscaped(right);
+  return exports.toEscaped(`(?:${reLeft}(?<!${reRight}${AC}*?)(?!${AC}*?${reRight}))`);
+};
+
+/**
  * Matches `left` when `right` appears together with it, within a single line.
  * 
  * @param {TLG.Phrase} left
