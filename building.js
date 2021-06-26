@@ -23,7 +23,7 @@ const naiContextDefaults = {
  * @type {NAI.LoreEntryConfig}
  */
 const naiEntryDefaults = {
-  searchRange: 1000,
+  searchRange: 1024,
   enabled: true,
   forceActivation: false
 };
@@ -36,8 +36,8 @@ const naiEntryDefaults = {
 const tlgBuildableDefaults = {
   ...naiEntryDefaults,
   subOp: matching.AND,
-  priorityDelta: -1,
-  searchDelta: 0
+  priorityDelta: 1,
+  searchDelta: 1024
 };
 
 /**
