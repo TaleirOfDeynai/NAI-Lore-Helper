@@ -58,7 +58,26 @@ namespace TLG {
 
   type PhraseExp = [PhraseOperand, PhraseOperator, PhraseOperand];
 
-  interface BuildableEntry extends Partial<NAI.LoreEntryConfig> {
+  interface BuildableEntryConfig extends Partial<NAI.LoreEntryConfig> {
+    /**
+     * The operator that related `subEntries` will use to combine their parent's
+     * keys with their own.  This will be provided to the `subEntries` as their
+     * default `rootOp`, if it is not set.
+     * 
+     * Defaults to the value of `rootOp`.
+     */
+     subOp?: PhraseOperator;
+
+    /**
+     * Changes the priority of sub-entries by this much.  A negative value will
+     * reduce the priority and a positive value will increase it.
+     * 
+     * Defaults to `-1`, making the priority of children slightly lower than the parent.
+     */
+     priorityDelta?: number;
+  }
+
+  interface BuildableEntry extends BuildableEntryConfig {
     /**
      * The name for this entry.
      */
@@ -100,23 +119,6 @@ namespace TLG {
      * operator specified in `subOp`, in order for them to match.
      */
     subEntries?: BuildableEntry[];
-
-    /**
-     * The operator that related `subEntries` will use to combine their parent's
-     * keys with their own.  This will be provided to the `subEntries` as their
-     * default `rootOp`, if it is not set.
-     * 
-     * Defaults to the value of `rootOp`.
-     */
-    subOp?: PhraseOperator;
-
-    /**
-     * Changes the priority of sub-entries by this much.  A negative value will
-     * reduce the priority and a positive value will increase it.
-     * 
-     * Defaults to `-1`, making the priority of children slightly lower than the parent.
-     */
-    priorityDelta?: number;
 
     /**
      * Overrides to the default context config.

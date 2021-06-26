@@ -29,6 +29,17 @@ const naiEntryDefaults = {
 };
 
 /**
+ * The default `BuildableEntryConfig` for `BuildableEntry`.
+ * 
+ * @type {Required<TLG.BuildableEntryConfig>}
+ */
+const tlgBuildableDefaults = {
+  ...naiEntryDefaults,
+  subOp: matching.AND,
+  priorityDelta: -1
+};
+
+/**
  * 
  * @param {TLG.BuildableEntry["keys"]} parentKeys
  * @param {TLG.PhraseOperator} subOp
@@ -58,19 +69,25 @@ exports.yieldChildKeys = function*(parentKeys = [], subOp, childKeys) {
  * 
  * @param {TLG.BuildableEntry} entry 
  * @param {NAI.ContextConfig} defaultsForContext
- * @param {NAI.LoreEntryConfig} defaultsForEntry
+ * @param {Required<TLG.BuildableEntryConfig>} defaultsForEntry
  * @returns {Iterable<NAI.LoreEntry>}
  */
 exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
   const {
+    subOp: defOp,
+    priorityDelta: defPriorityDelta,
+    ...naiDefaults
+  } = defaultsForEntry;
+
+  const {
     name,
     baseKeys: parentBase = [],
-    baseOp: rootOp = matching.AND,
+    baseOp = defOp,
     keys: givenKeys,
     text: givenText = [],
     subEntries: childEntries = [],
-    subOp: parentOp = rootOp,
-    priorityDelta = -1,
+    subOp: parentOp = baseOp,
+    priorityDelta = defPriorityDelta,
     contextConfig: contextOverrides,
     ...entryOverrides
   } = entry;
@@ -80,7 +97,7 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
     // In all other cases, we'll have converted it to an array when constructing
     // the child below.
     const theBaseKeys = is.function(parentBase) ? parentBase([]) : parentBase;
-    return [...exports.yieldChildKeys(theBaseKeys, rootOp, givenKeys)]
+    return [...exports.yieldChildKeys(theBaseKeys, baseOp, givenKeys)]
   });
 
   const entries = asArray(givenText);
@@ -90,7 +107,7 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
   const contextConfig = { ...defaultsForContext, ...contextOverrides };
   // If we have no keys, default to activating forcibly.
   const forceActivation = keys.length === 0;
-  const entryConfig = { ...defaultsForEntry, forceActivation, ...entryOverrides };
+  const entryConfig = { ...naiDefaults, forceActivation, ...entryOverrides };
 
   yield* entries.map((text, i, arr) => {
     const displayName = arr.length === 1 ? name : `${name} (${i + 1} of ${arr.length})`;
@@ -130,13 +147,13 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
  * 
  * @param {Object} config
  * @param {Partial<NAI.ContextConfig>} [config.contextConfig]
- * @param {Partial<NAI.LoreEntryConfig>} [config.entryConfig]
+ * @param {Partial<TLG.BuildableEntryConfig>} [config.entryConfig]
  * @param {TLG.BuildableEntry[]} config.entries
  * @returns {NAI.LoreBook}
  */
 exports.buildEntries = (config) => {
   const initContextConfig = { ...naiContextDefaults, ...config.contextConfig };
-  const initEntryConfig = { ...naiEntryDefaults, ...config.entryConfig };
+  const initEntryConfig = { ...tlgBuildableDefaults, ...config.entryConfig };
   
   const entries = config.entries.flatMap(
     (entry) => [...exports.yieldEntries(entry, initContextConfig, initEntryConfig)]
