@@ -1,4 +1,4 @@
-const { dew, is } = require("./utils");
+const { dew, tuple, is } = require("./utils");
 
 /** All characters. */
 const AC = "[\\s\\S]";
@@ -170,6 +170,19 @@ exports.REGEX = (regex) => {
   if (match) return match[1];
   throw new Error(`Not compatible with NovelAI's regular-expressions: ${regex}`);
 };
+
+/**
+ * Constructs a phrase expression.
+ * 
+ * This exists primarily for type-safety and to make TypeScript happy when it fails
+ * to infer `TLG.PhraseExp` from array literals in certain situations.
+ * 
+ * @param {TLG.Phrase} left 
+ * @param {TLG.PhraseOperator} op 
+ * @param {TLG.Phrase} right 
+ * @returns {TLG.PhraseExp}
+ */
+exports.EXP = (left, op, right) => tuple(left, op, right);
 
 /**
  * Matches at least one of the given alternatives.
