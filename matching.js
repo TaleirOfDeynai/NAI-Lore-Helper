@@ -35,7 +35,7 @@ exports.escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const reNaiRegex = /^\/(.*)\/[ismu]*$/;
 /**
- * Determines if the value is a NovelAI regular expression string.
+ * Determines if the value is a NovelAI regular-expression string.
  * 
  * @param {*} value 
  * @returns 
@@ -123,7 +123,7 @@ exports.asEscaped = (phrase) => {
 }
 
 /**
- * Creates an exact-match matcher.
+ * Creates an exact-match phrase.
  * 
  * @param {string} word 
  * @returns {TLG.EscapedRegex}
@@ -131,7 +131,7 @@ exports.asEscaped = (phrase) => {
 exports.LIT = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}${B}`);
 
 /**
- * Creates an prefix matcher, where the tail-end of the word is open-ended.
+ * Creates an prefix phrase, where the tail-end of the word is open-ended.
  * 
  * This is the default conversion from `string` to `TLG.EscapedRegex`.
  * 
@@ -141,7 +141,7 @@ exports.LIT = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}${B}
 exports.PRE = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}`);
 
 /**
- * Creates an postfix matcher, where the leading-end of the word is open-ended.
+ * Creates an postfix phrase, where the leading-end of the word is open-ended.
  * 
  * @param {string} word 
  * @returns {TLG.EscapedRegex}
@@ -149,7 +149,7 @@ exports.PRE = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}`);
 exports.POST = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}${B}`);
 
 /**
- * Creates an open-ended matcher, where both ends of the word are open-ended.
+ * Creates an open-ended phrase, where both ends of the word are open-ended.
  * 
  * @param {string} word 
  * @returns {TLG.EscapedRegex}
@@ -157,7 +157,7 @@ exports.POST = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}${
 exports.OPEN = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}`);
 
 /**
- * Creates a matcher from a NovelAI regular-expression string, to help with migrating
+ * Creates a phrase from a NovelAI regular-expression string, to help with migrating
  * pre-existing lorebooks.
  * 
  * Note: only the pattern of the regular-expression will be used.  Any flags specified
@@ -238,10 +238,10 @@ exports.WITHOUT = (left, right) => {
 
 exports.NEAR = asExtBinaryOp(
   /**
-   * Creates a matcher that can match two words when they are in proximity to each other.
+   * Creates an operator that can match two phrases when they are in proximity to each other.
    * 
-   * Supports options for range (defaults to 10 words) and whether the search can
-   * extends beyond a single line (default is to disallow it).
+   * Supports options for range (defaults to 10 words) and whether the search can extends
+   * beyond a single line (default is to disallow it).
    * 
    * @param {number | [number, number]} [range]
    * How near the two words must.
@@ -282,10 +282,10 @@ exports.NEAR = asExtBinaryOp(
 
 exports.BEYOND = asExtBinaryOp(
   /**
-   * Creates a matcher that can match two words when they are NOT in proximity to each other.
+   * Creates an operator that can match two phrases when they are NOT in proximity to each other.
    * 
-   * Supports options for range (defaults to 10 words) and whether the search can
-   * extends beyond a single line (default is to disallow it).
+   * Supports options for range (defaults to 10 words) and whether the search can extends beyond
+   * a single line (default is to disallow it).
    * 
    * @param {number} [distance]
    * How distant the two words must be.
