@@ -1,4 +1,4 @@
-const fs = require("fs");
+const { getName, outputLorebook } = require("./utils");
 const matching = require("./matching");
 const { buildEntries } = require("./building");
 
@@ -182,10 +182,5 @@ const loreBook = buildEntries({
 });
 
 // This all just writes the output to the filesystem.
-fs.writeFile(
-  "./example.lorebook",
-  JSON.stringify(loreBook, undefined, 2),
-  (err) => {
-    if (err) console.error(err);
-  }
-);
+// It will use the name `example.lorebook`, since this file is called `example.js`.
+outputLorebook(getName(__filename), loreBook);

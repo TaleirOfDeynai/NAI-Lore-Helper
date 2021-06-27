@@ -36,6 +36,7 @@ exports.asArray = (value) => Array.isArray(value) ? value : [value];
 // @ts-ignore - The `readonly` modifier is only used to infer literal types.
 exports.tuple = (...args) => args;
 
+/** Helpers for type-guards. */
 exports.is = {
   /** @type {TLG.TypePredicate<Function>} */
   function: (value) => typeof value === "function",
@@ -47,4 +48,34 @@ exports.is = {
   string: (value) => typeof value === "string",
   /** @type {TLG.TypePredicate<number>} */
   number: (value) => typeof value === "number" 
+};
+
+/**
+ * Extracts a name from a file path.  Pass in `__filename` to get the nam
+ * 
+ * @param {string} filePath 
+ * @returns {string}
+ */
+exports.getName = (filePath) => {
+  const path = require("path");
+  const ext = path.extname(filePath) || undefined;
+  return path.basename(filePath, ext);
+};
+
+/**
+ * Outputs a lorebook to the file system.
+ * 
+ * @param {string} name 
+ * @param {NAI.LoreBook} obj 
+ */
+exports.outputLorebook = (name, obj) => {
+  const fs = require("fs");
+
+  fs.writeFile(
+    `./${name}.lorebook`,
+    JSON.stringify(obj, undefined, 2),
+    (err) => {
+      if (err) console.error(err);
+    }
+  );
 };

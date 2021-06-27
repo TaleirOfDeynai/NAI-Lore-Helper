@@ -7,7 +7,8 @@ keys and simplifies creating focused relationships between entries.
 2. Pull or download this repo so you have your own copy.
 3. Using your command-line software of choice, navigate to the directory you placed it.
 4. Run the example with: `node ./example.js`
-5. Check out the generated `example.lorebook` file to verify that it produced a lorebook successfully.
+5. Assuming everything is installed correctly, an `example.lorebook` file will be output into the directory.
+6. Customize!  The generated `.lorebook` can be imported into your story.
 
 ## Usage
 Check out `example.js` to see how the script is used.
