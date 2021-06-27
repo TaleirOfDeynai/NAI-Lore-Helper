@@ -33,6 +33,15 @@ const asExtBinaryOp = (fn) => {
  */
 exports.escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const reNaiRegex = /^\/(.*)\/[ismu]*$/;
+/**
+ * Determines if the value is a NovelAI regular expression string.
+ * 
+ * @param {*} value 
+ * @returns 
+ */
+exports.isNaiRegex = (value) => reNaiRegex.test(value);
+
 /**
  * Determines if the value is an escaped regular-expression part.
  * 
@@ -146,6 +155,21 @@ exports.POST = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}${
  * @returns {TLG.EscapedRegex}
  */
 exports.OPEN = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}`);
+
+/**
+ * Creates a matcher from a NovelAI regular-expression string, to help with migrating
+ * pre-existing lorebooks.
+ * 
+ * Note: only the pattern of the regular-expression will be used.  Any flags specified
+ * will be discarded due to script limitations.
+ * 
+ * @param {string} regex 
+ */
+exports.REGEX = (regex) => {
+  const match = reNaiRegex.exec(regex);
+  if (match) return match[1];
+  throw new Error(`Not compatible with NovelAI's regular-expressions: ${regex}`);
+};
 
 /**
  * Matches at least one of the given alternatives.
