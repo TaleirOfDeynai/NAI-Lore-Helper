@@ -163,11 +163,12 @@ exports.OPEN = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}`)
  * Note: only the pattern of the regular-expression will be used.  Any flags specified
  * will be discarded due to script limitations.
  * 
- * @param {string} regex 
+ * @param {string} regex
+ * @returns {TLG.EscapedRegex}
  */
 exports.REGEX = (regex) => {
   const match = reNaiRegex.exec(regex);
-  if (match) return match[1];
+  if (match) return exports.toEscaped(`(?:${match[1]})`);
   throw new Error(`Not compatible with NovelAI's regular-expressions: ${regex}`);
 };
 
