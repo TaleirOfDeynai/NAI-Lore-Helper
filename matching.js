@@ -14,7 +14,7 @@ const OE = "\\w*?";
  * 
  * Extended binary operators can be given options to vary their behavior.
  * 
- * @template {() => TLG.BinaryOperator} TFn
+ * @template {() => TLG.Matching.BinaryOperator} TFn
  * @param {TFn} fn
  * @returns {TFn & { isExtBinaryOp: true }}
  */
@@ -46,7 +46,7 @@ exports.isNaiRegex = (value) => reNaiRegex.test(value);
  * Determines if the value is an escaped regular-expression part.
  * 
  * @param {any} value 
- * @returns {value is TLG.EscapedRegex}
+ * @returns {value is TLG.Matching.EscapedRegex}
  */
 exports.isEscaped = (value) => {
   if (value == null) return false;
@@ -59,7 +59,7 @@ exports.isEscaped = (value) => {
  * Determines if the value is a phrase expression.
  * 
  * @param {any} value 
- * @returns {value is TLG.PhraseExp}
+ * @returns {value is TLG.Matching.PhraseExp}
  */
 exports.isPhraseExp = (value) => {
   if (!is.array(value)) return false;
@@ -72,7 +72,7 @@ exports.isPhraseExp = (value) => {
  * Determines if the value is an extended binary operator.
  * 
  * @param {any} value 
- * @returns {value is TLG.ExtBinaryOperator}
+ * @returns {value is TLG.Matching.ExtBinaryOperator}
  */
 exports.isExtBinaryOperator = (value) => {
   if (!is.function(value)) return false;
@@ -82,8 +82,8 @@ exports.isExtBinaryOperator = (value) => {
 /**
  * Evaluates a 3-tuple phrase expression.
  * 
- * @param {TLG.PhraseExp} exp
- * @returns {TLG.EscapedRegex}
+ * @param {TLG.Matching.PhraseExp} exp
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.evalExp = (exp) => {
   const [left, op, right] = exp;
@@ -95,7 +95,7 @@ exports.evalExp = (exp) => {
  * Wraps a string in an object that indicates it is an escaped regular-expression pattern.
  * 
  * @param {string} pattern 
- * @returns {TLG.EscapedRegex}
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.toEscaped = (pattern) => {
   return {
@@ -112,8 +112,8 @@ exports.toEscaped = (pattern) => {
  * - `TLG.EscapedRegex` - Returned as-is.
  * - `string` - Converted using `PRE`.
  * 
- * @param {TLG.Phrase} phrase 
- * @returns {TLG.EscapedRegex}
+ * @param {TLG.Matching.Phrase} phrase 
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.asEscaped = (phrase) => {
   if (phrase instanceof RegExp) return this.toEscaped(`(?:${phrase.source})`);
@@ -126,7 +126,7 @@ exports.asEscaped = (phrase) => {
  * Creates an exact-match phrase.
  * 
  * @param {string} word 
- * @returns {TLG.EscapedRegex}
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.LIT = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}${B}`);
 
@@ -136,7 +136,7 @@ exports.LIT = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}${B}
  * This is the default conversion from `string` to `TLG.EscapedRegex`.
  * 
  * @param {string} word 
- * @returns {TLG.EscapedRegex}
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.PRE = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}`);
 
@@ -144,7 +144,7 @@ exports.PRE = (word) => exports.toEscaped(`${B}${exports.escapeRegExp(word)}`);
  * Creates an postfix phrase, where the leading-end of the word is open-ended.
  * 
  * @param {string} word 
- * @returns {TLG.EscapedRegex}
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.POST = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}${B}`);
 
@@ -152,7 +152,7 @@ exports.POST = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}${
  * Creates an open-ended phrase, where both ends of the word are open-ended.
  * 
  * @param {string} word 
- * @returns {TLG.EscapedRegex}
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.OPEN = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}`);
 
@@ -164,7 +164,7 @@ exports.OPEN = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}`)
  * will be discarded due to script limitations.
  * 
  * @param {string} regex
- * @returns {TLG.EscapedRegex}
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.REGEX = (regex) => {
   const match = reNaiRegex.exec(regex);
@@ -178,18 +178,18 @@ exports.REGEX = (regex) => {
  * This exists primarily for type-safety and to make TypeScript happy when it fails
  * to infer `TLG.PhraseExp` from array literals in certain situations.
  * 
- * @param {TLG.Phrase} left 
- * @param {TLG.PhraseOperator} op 
- * @param {TLG.Phrase} right 
- * @returns {TLG.PhraseExp}
+ * @param {TLG.Matching.Phrase} left 
+ * @param {TLG.Matching.PhraseOperator} op 
+ * @param {TLG.Matching.Phrase} right 
+ * @returns {TLG.Matching.PhraseExp}
  */
 exports.EXP = (left, op, right) => tuple(left, op, right);
 
 /**
  * Matches at least one of the given alternatives.
  * 
- * @param  {...TLG.Phrase} alternates 
- * @returns {TLG.EscapedRegex}
+ * @param  {...TLG.Matching.Phrase} alternates 
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.ALT = (...alternates) => {
   alternates = alternates.map((alt) => exports.asEscaped(alt));
@@ -199,9 +199,9 @@ exports.ALT = (...alternates) => {
 /**
  * Matches `left` when `right` appears together with it, within the searched text.
  * 
- * @param {TLG.Phrase} left
- * @param {TLG.Phrase} right
- * @returns {TLG.EscapedRegex}
+ * @param {TLG.Matching.Phrase} left
+ * @param {TLG.Matching.Phrase} right
+ * @returns {TLG.Matching.EscapedRegex}
  * 
  */
 exports.AND = (left, right) => {
@@ -213,9 +213,9 @@ exports.AND = (left, right) => {
 /**
  * Matches `left` when `right` does NOT appear together with it, within the searched text.
  * 
- * @param {TLG.Phrase} left
- * @param {TLG.Phrase} right
- * @returns {TLG.EscapedRegex}
+ * @param {TLG.Matching.Phrase} left
+ * @param {TLG.Matching.Phrase} right
+ * @returns {TLG.Matching.EscapedRegex}
  * 
  */
  exports.EXCLUDING = (left, right) => {
@@ -227,9 +227,9 @@ exports.AND = (left, right) => {
 /**
  * Matches `left` when `right` appears together with it, within a single line.
  * 
- * @param {TLG.Phrase} left
- * @param {TLG.Phrase} right
- * @returns {TLG.EscapedRegex}
+ * @param {TLG.Matching.Phrase} left
+ * @param {TLG.Matching.Phrase} right
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.WITH = (left, right) => {
   const reLeft = exports.asEscaped(left);
@@ -240,9 +240,9 @@ exports.WITH = (left, right) => {
 /**
  * Matches `left` when `right` does NOT appear together with it, within a single line.
  * 
- * @param {TLG.Phrase} left
- * @param {TLG.Phrase} right
- * @returns {TLG.EscapedRegex}
+ * @param {TLG.Matching.Phrase} left
+ * @param {TLG.Matching.Phrase} right
+ * @returns {TLG.Matching.EscapedRegex}
  */
 exports.WITHOUT = (left, right) => {
   const reLeft = exports.asEscaped(left);
@@ -263,7 +263,7 @@ exports.NEAR = asExtBinaryOp(
    * - `[number, number]` - Within this range of words.
    * @param {boolean} [sameLine]
    * Whether to constrain the search to a single line.  Defaults to `true`.
-   * @returns {TLG.BinaryOperator}
+   * @returns {TLG.Matching.BinaryOperator}
    */
   (range = 10, sameLine = true) => {
     const [lo, hi] = dew(() => {
@@ -279,7 +279,7 @@ exports.NEAR = asExtBinaryOp(
       throw new TypeError(`Not valid for \`range\`: ${range}`);
     });
 
-    /** @type {TLG.BinaryOperator} */
+    /** @type {TLG.Matching.BinaryOperator} */
     const matcher = (left, right) => {
       const reLeft = exports.asEscaped(left);
       const reRight = exports.asEscaped(right);
@@ -305,10 +305,10 @@ exports.BEYOND = asExtBinaryOp(
    * How distant the two words must be.
    * @param {boolean} [sameLine]
    * Whether to constrain the search to a single line.  Defaults to `true`.
-   * @returns {TLG.BinaryOperator}
+   * @returns {TLG.Matching.BinaryOperator}
    */
   (distance = 10, sameLine = true) => {
-    /** @type {TLG.BinaryOperator} */
+    /** @type {TLG.Matching.BinaryOperator} */
     const matcher = (left, right) => {
       const reLeft = exports.asEscaped(left);
       const reRight = exports.asEscaped(right);

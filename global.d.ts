@@ -39,24 +39,26 @@ namespace TLG {
 
   type TypePredicate<T> = (value: any) => value is T;
 
-  interface EscapedRegex {
-    isEscaped: true;
-    toNAI(): string;
-    toString(): string;
+  namespace Matching {
+    interface EscapedRegex {
+      isEscaped: true;
+      toNAI(): string;
+      toString(): string;
+    }
+  
+    type Phrase = string | RegExp | PhraseExp | EscapedRegex;
+    type BinaryOperator = (left: Phrase, right: Phrase) => EscapedRegex;
+  
+    interface ExtBinaryOperator {
+      (): BinaryOperator;
+      isExtBinaryOp: true;
+    }
+  
+    type PhraseOperator = BinaryOperator | ExtBinaryOperator;
+    type PhraseOperand = Phrase | PhraseExp;
+  
+    type PhraseExp = [PhraseOperand, PhraseOperator, PhraseOperand];
   }
-
-  type Phrase = string | RegExp | PhraseExp | EscapedRegex;
-  type BinaryOperator = (left: Phrase, right: Phrase) => EscapedRegex;
-
-  interface ExtBinaryOperator {
-    (): BinaryOperator;
-    isExtBinaryOp: true;
-  }
-
-  type PhraseOperator = BinaryOperator | ExtBinaryOperator;
-  type PhraseOperand = Phrase | PhraseExp;
-
-  type PhraseExp = [PhraseOperand, PhraseOperator, PhraseOperand];
 
   interface BuildableEntryConfig extends Partial<NAI.LoreEntryConfig> {
     /**
