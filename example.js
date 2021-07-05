@@ -1,6 +1,7 @@
 const { getName, outputLorebook } = require("./utils");
 const matching = require("./matching");
 const { buildEntries } = require("./building");
+const { DepthDelta } = require("./strategies/depthDelta");
 
 // This is a very basic example of how to use this script to produce a lorebook with fairly
 // complex keyword matching.
@@ -57,14 +58,16 @@ const {
 // A predefined configuration for very important entries.
 // These will be inserted on the 8th line from the latest input and reserve their space.
 const stateConfig = {
-  contextConfig: {
+  context: {
     prefix: "[Note: ",
     suffix: "]\n",
     reservedTokens: 2048,
     budgetPriority: -200,
     insertionPosition: -8
   },
-  searchRange: 1024
+  entry: {
+    searchRange: 1024
+  }
 };
 
 // Here we define some shorthand accessors for common sets of keys.  You do not need to do
@@ -81,19 +84,24 @@ const keys = {
 };
 
 const loreBook = buildEntries({
-  // Here we specify the configuration for the whole lorebook.  The defaults are always the
-  // same as a new lorebook entry in NovelAI, so you need only provide overrides versus those.
-  contextConfig: {
-    // These settings are good for prose entries with a 2048 context-size and the bulk of the
-    // entries positioned at the top of the context.
-    prefix: "• ",
-    suffix: "\n"
-  },
-  entryConfig: {
-    searchRange: 2048,
-    // Along with the usual configuration that NovelAI supports, `entryConfig` also has extra
+  // Here we specify the default strategy for the whole lorebook.  A strategy determines how the
+  // context and entry configuration will change each time it progresses into a nested entry
+  // inside of `subEntries`.
+  //
+  // Here we use the `DepthDelta` strategy.
+  strategy: DepthDelta({
+    context: {
+      // These settings are good for prose entries with a 2048 context-size and the bulk of the
+      // entries positioned at the top of the context.
+      prefix: "• ",
+      suffix: "\n"
+    },
+    entry: {
+      searchRange: 2048
+    },
+    // Along with the usual configuration that NovelAI supports, `DepthDelta` also has extra
     // options that affect nested entries.  `priorityDelta` and `searchDelta` are added to
-    // `contextConfig.budgetPriority` and `searchRange`, respectively, each time it descends
+    // `context.budgetPriority` and `entry.searchRange`, respectively, each time it descends
     // deeper into the tree.
     //
     // These values here are actually the defaults; I'm only demonstrating them here.
@@ -101,7 +109,7 @@ const loreBook = buildEntries({
     // and therefore harder to match, to be more dominant in the context.
     priorityDelta: 1,
     searchDelta: 1024
-  },
+  }),
   // This is where your root entries go.  Each entry is an object in this array.
   entries: [
     {
@@ -146,6 +154,13 @@ const loreBook = buildEntries({
           // with more than one entry, it will additionally have something like `"(1 of 3)"`
           // added to it as well.
           name: "Backstory",
+          strategy: DepthDelta({
+            context: {
+              // In this case, we want to reduce the priority compared to the parent (which has a
+              // default of 400), as background information isn't incredibly important.
+              budgetPriority: 200
+            }
+          }),
           // Here we specify an empty set of `keys`.  This means these entries will
           // only use the keys of the parent.  All other aspects of nesting are still applied,
           // such as name construction and applying the `delta` configurations.
@@ -155,24 +170,15 @@ const loreBook = buildEntries({
           text: [
             "Taleir has some notoriety as The Ghost of Mentesa Hold, due to her origins within that slave trading outpost.  Most people do not believe the story, but those who have met some of the slaves she freed believe it.",
             "Taleir was once a rogue in Ancester and was adept at quietly acquiring things and information by contract.  She no longer wants to follow that conflicting and immoral path, so left for Jasco where kemon like her have better opportunities."
-          ],
-          contextConfig: {
-            // In this case, we want to reduce the priority compared to the parent (which has a
-            // default of 400), as background information isn't incredibly important.
-            budgetPriority: 200
-          }
+          ]
         },
         {
           name: "Jasco Unfamiliarity",
+          // Here we apply that `stateConfig` defined earlier.  The `DepthDelta` strategy will
+          // inherit the `priorityDelta` and `searchDelta` from ancestor `DepthDelta` strategies.
+          strategy: DepthDelta(stateConfig),
           keys: [LIT("jasco")],
-          text: "This is Taleir's first time in Jasco and may become lost in its streets.",
-          // Here we apply that `stateConfig` defined earlier.  The way entry configuration works
-          // is the nested entry will inherit the configuration of the parent, but the nested entry
-          // can specify new values that will act as overrides.
-          //
-          // This trick of using a spread-operator can save you a lot of copying and pasting when
-          // you want only a few entries to work in a special way.
-          ...stateConfig
+          text: "This is Taleir's first time in Jasco and may become lost in its streets."
         }
       ]
     },

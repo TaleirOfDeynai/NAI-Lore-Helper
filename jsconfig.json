@@ -7,6 +7,6 @@
     "module": "commonJS",
     "lib": ["es2019", "es2020"]
   },
-  "include": ["./*.js", "./global.d.ts"],
+  "include": ["./**/*.js", "./**/*.d.ts"],
   "exclude": ["node_modules"]
 }

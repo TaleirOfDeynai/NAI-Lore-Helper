@@ -36,6 +36,21 @@ exports.asArray = (value) => Array.isArray(value) ? value : [value];
 // @ts-ignore - The `readonly` modifier is only used to infer literal types.
 exports.tuple = (...args) => args;
 
+/**
+ * @template {{}} TObj
+ * @param {TObj} obj 
+ * @returns {DefinedOf<TObj>}
+ */
+exports.dropUndefProps = (obj) => {
+  /** @type {any} */
+  const result = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (typeof v === "undefined") continue;
+    result[k] = v;
+  }
+  return result;
+};
+
 /** Helpers for type-guards. */
 exports.is = {
   /** @type {TLG.TypePredicate<Function>} */

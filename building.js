@@ -1,32 +1,6 @@
 const { dew, ident, asArray, is } = require("./utils");
+const DEFAULTS = require("./strategies/_naiDefaults");
 const matching = require("./matching");
-
-/**
- * The default `ContextConfig` for `LoreEntry`.
- * 
- * @type {NAI.ContextConfig}
- */
-const naiContextDefaults = {
-  prefix: "",
-  suffix: "\n",
-  tokenBudget: 2048,
-  reservedTokens: 0,
-  budgetPriority: 400,
-  trimDirection: "trimBottom",
-  insertionType: "newline",
-  insertionPosition: -1
-};
-
-/**
- * The default `LoreEntryConfig` for `LoreEntry`.
- * 
- * @type {NAI.LoreEntryConfig}
- */
-const naiEntryDefaults = {
-  searchRange: 1024,
-  enabled: true,
-  forceActivation: false
-};
 
 /**
  * The default `BuildableEntryConfig` for `BuildableEntry`.
@@ -34,18 +8,16 @@ const naiEntryDefaults = {
  * @type {Required<TLG.BuildableEntryConfig>}
  */
 const tlgBuildableDefaults = {
-  ...naiEntryDefaults,
-  subOp: matching.AND,
-  priorityDelta: 1,
-  searchDelta: 1024
+  strategy: require("./strategies/fixed").Fixed({}),
+  subOp: matching.AND
 };
 
 /**
  * 
  * @param {TLG.BuildableEntry["keys"]} parentKeys
- * @param {TLG.PhraseOperator} subOp
+ * @param {TLG.Matching.PhraseOperator} subOp
  * @param {TLG.BuildableEntry["keys"]} childKeys
- * @returns {Iterable<TLG.PhraseOperand>}
+ * @returns {Iterable<TLG.Matching.PhraseOperand>}
  */
 exports.yieldChildKeys = function*(parentKeys = [], subOp, childKeys) {
   if (parentKeys.length === 0) {
@@ -68,31 +40,23 @@ exports.yieldChildKeys = function*(parentKeys = [], subOp, childKeys) {
 
 /**
  * 
- * @param {TLG.BuildableEntry} entry 
- * @param {NAI.ContextConfig} defaultsForContext
+ * @param {TLG.BuildableEntry} entry
+ * @param {TLG.Config.State} state
  * @param {Required<TLG.BuildableEntryConfig>} defaultsForEntry
  * @returns {Iterable<NAI.LoreEntry>}
  */
-exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
-  const {
-    subOp: defOp,
-    priorityDelta: defPriorityDelta,
-    searchDelta: defSearchDelta,
-    ...naiDefaults
-  } = defaultsForEntry;
+exports.yieldEntries = function*(entry, state, defaultsForEntry) {
+  const { subOp: defOp, strategy: defStrategy } = defaultsForEntry;
 
   const {
     name,
-    baseKeys: parentBase = [],
+    strategy: parentStrategy = defStrategy,
     baseOp = defOp,
+    baseKeys: parentBase = [],
     keys: givenKeys,
     text: givenText = [],
-    subEntries: childEntries = [],
     subOp: parentOp = baseOp,
-    priorityDelta = defPriorityDelta,
-    searchDelta = defSearchDelta,
-    contextConfig: contextOverrides,
-    ...entryOverrides
+    subEntries: childEntries = []
   } = entry;
 
   const parentKeys = dew(() => {
@@ -106,11 +70,18 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
   const entries = asArray(givenText);
   const keys = parentKeys.map((key) => matching.asEscaped(key).toNAI());
 
+  // Get strategy configuration.
+  const curConfig = parentStrategy.apply(state, parentStrategy.config);
   // Apply configuration overrides.
-  const contextConfig = { ...defaultsForContext, ...contextOverrides };
-  // If we have no keys, default to activating forcibly.
-  const forceActivation = keys.length === 0;
-  const entryConfig = { ...naiDefaults, forceActivation, ...entryOverrides };
+  const usedState = dew(() => {
+    if (keys.length > 0) return state;
+
+    // If we have no keys, default to activating forcibly.
+    const { entry: { forceActivation: _, ...restEntry }, ...restState } = state;
+    return { ...restState, entry: { ...restEntry, forceActivation: true } };
+  });
+  const contextConfig = parentStrategy.context(usedState, curConfig);
+  const entryConfig = parentStrategy.entry(usedState, curConfig);
 
   yield* entries.map((text, i, arr) => {
     const displayName = arr.length === 1 ? name : `${name} (${i + 1} of ${arr.length})`;
@@ -119,49 +90,57 @@ exports.yieldEntries = function*(entry, defaultsForContext, defaultsForEntry) {
 
   if (childEntries.length === 0) return;
 
-  // We don't want to propagate the `forceActivation` override, if present.
-  // We'll also apply the `searchDelta` delta here for the child entries.
-  const searchRange = Math.max(Math.min(entryConfig.searchRange + searchDelta, 10000), 512);
-  const childEntryConfig = { ...defaultsForEntry, ...entryOverrides, searchRange };
-  // If a `priorityDelta` was set, we apply it here for the child entries.
-  const childPriority = contextConfig.budgetPriority + priorityDelta;
-  const childContextConfig = { ...contextConfig, budgetPriority: childPriority };
+  // Ask the strategy to determine a configuration to build the next `state` for the
+  // child entires.  We build an intermediate state from this, which doesn't include
+  // the `forceActivation` shenanigans (but the `entryConfig` may still have been
+  // affected by it when generated).
+  const intermediateState = { ...state, context: contextConfig, entry: entryConfig };
+  const nextConfig = parentStrategy.extend(intermediateState, curConfig);
+  const nextState = {
+    context: parentStrategy.context(intermediateState, nextConfig),
+    entry: parentStrategy.entry(intermediateState, nextConfig),
+    strategyStack: [...state.strategyStack, parentStrategy],
+    depth: state.depth + 1
+  };
+  const childEntryConfig = { strategy: parentStrategy, subOp: parentOp };
 
   for (const childEntry of childEntries) {
     const {
       name: childName,
-      baseKeys: childBase = ident,
-      subOp = parentOp,
+      baseKeys: childBaseKeys = ident,
       ...restOfEntry
     } = childEntry;
 
     const newEntry = {
-      priorityDelta,
       baseOp: parentOp,
       ...restOfEntry,
-      baseKeys: is.function(childBase) ? childBase(parentKeys) : childBase,
-      subOp,
-      name: `${name} - ${childName}`
+      name: `${name} - ${childName}`,
+      baseKeys: is.function(childBaseKeys) ? childBaseKeys(parentKeys) : childBaseKeys
     };
 
-    yield* exports.yieldEntries(newEntry, childContextConfig, childEntryConfig);
+    yield* exports.yieldEntries(newEntry, nextState, childEntryConfig);
   }
 };
 
 /**
  * 
- * @param {Object} config
- * @param {Partial<NAI.ContextConfig>} [config.contextConfig]
- * @param {Partial<TLG.BuildableEntryConfig>} [config.entryConfig]
- * @param {TLG.BuildableEntry[]} config.entries
+ * @param {TLG.BuilderConfig} config
  * @returns {NAI.LoreBook}
  */
 exports.buildEntries = (config) => {
-  const initContextConfig = { ...naiContextDefaults, ...config.contextConfig };
-  const initEntryConfig = { ...tlgBuildableDefaults, ...config.entryConfig };
+  const { entries: rootEntries, ...restConfig } = config;
+  const initEntryConfig = { ...tlgBuildableDefaults, ...restConfig };
+
+  /** @type {TLG.Config.State} */
+  const initState = {
+    context: { ...DEFAULTS.contextDefaults },
+    entry: { ...DEFAULTS.entryDefaults },
+    strategyStack: [],
+    depth: 0
+  };
   
-  const entries = config.entries.flatMap(
-    (entry) => [...exports.yieldEntries(entry, initContextConfig, initEntryConfig)]
+  const entries = rootEntries.flatMap(
+    (entry) => [...exports.yieldEntries(entry, initState, initEntryConfig)]
   );
 
   return { entries, lorebookVersion: 1 };
