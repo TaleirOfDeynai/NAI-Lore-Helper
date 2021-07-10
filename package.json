@@ -1,5 +1,6 @@
 {
   "name": "nai-lore-helper",
+  "main": "index.js",
   "author": {
     "name": "Taleir of Deynai"
   },
