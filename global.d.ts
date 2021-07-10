@@ -15,6 +15,7 @@ namespace NAI {
     budgetPriority: number;
     trimDirection: "trimBottom" | "trimTop" | "doNotTrim";
     insertionType: "newline" | "sentence" | "token";
+    maximumTrimType: "newline" | "sentence" | "token";
     insertionPosition: number;
   }
 
@@ -22,6 +23,12 @@ namespace NAI {
     searchRange: number;
     enabled: boolean;
     forceActivation: boolean;
+    keyRelative: boolean;
+    nonStoryActivatable: boolean;
+  }
+
+  interface LoreBookConfig {
+    orderByKeyLocations: boolean;
   }
 
   interface LoreEntry extends LoreEntryConfig {
@@ -34,6 +41,7 @@ namespace NAI {
 
   interface LoreBook {
     lorebookVersion: 1;
+    settings: LoreBookConfig;
     entries: LoreEntry[];
   }
 
@@ -219,6 +227,11 @@ namespace TLG {
      * as the entry builder traverses the `entries` of `TLG.BuilderConfig`.
      */
     strategy?: Config.Strategy<string, any>;
+
+    /**
+     * Settings for the lorebook itself.
+     */
+    settings?: Partial<NAI.LoreBookConfig>;
 
     /**
      * The list of `TLG.BuildableEntry` to build `NAI.LoreEntry` from.

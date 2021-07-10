@@ -128,8 +128,10 @@ exports.yieldEntries = function*(entry, state, defaultsForEntry) {
  * @returns {NAI.LoreBook}
  */
 exports.buildEntries = (config) => {
-  const { entries: rootEntries, ...restConfig } = config;
+  const { entries: rootEntries, settings: givenSettings, ...restConfig } = config;
   const initEntryConfig = { ...tlgBuildableDefaults, ...restConfig };
+
+  const settings = { ...DEFAULTS.lorebookDefaults, ...givenSettings };
 
   /** @type {TLG.Config.State} */
   const initState = {
@@ -143,5 +145,5 @@ exports.buildEntries = (config) => {
     (entry) => [...exports.yieldEntries(entry, initState, initEntryConfig)]
   );
 
-  return { entries, lorebookVersion: 1 };
+  return { lorebookVersion: 1, settings, entries };
 };

@@ -11,6 +11,7 @@ exports.contextDefaults = {
   budgetPriority: 400,
   trimDirection: "trimBottom",
   insertionType: "newline",
+  maximumTrimType: "sentence",
   insertionPosition: -1
 };
 
@@ -22,5 +23,16 @@ exports.contextDefaults = {
 exports.entryDefaults = {
   searchRange: 1024,
   enabled: true,
-  forceActivation: false
+  forceActivation: false,
+  keyRelative: false,
+  nonStoryActivatable: false
+};
+
+/**
+ * The default `LoreBookConfig` for a `LoreBook`.
+ * 
+ * @type {NAI.LoreBookConfig}
+ */
+exports.lorebookDefaults = {
+  orderByKeyLocations: false
 };
