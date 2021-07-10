@@ -43,25 +43,9 @@ exports.strategyBuilder = (baseConfig, defaults) => {
  */
 exports.Concept = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
-    reservedTokens: 0,
-    budgetPriority: 800,
-    insertionPosition: -1
-  },
-  entry: {
-    searchRange: 2000
-  }
-});
-
-/**
- * A note for factions.
- * 
- * @type {StrategyFn}
- */
- exports.Faction = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
-  context: {
-    reservedTokens: 0,
-    budgetPriority: 700,
-    insertionPosition: -1
+    reservedTokens: 100,
+    budgetPriority: -200,
+    insertionPosition: -10
   },
   entry: {
     searchRange: 5000
@@ -73,11 +57,11 @@ exports.Concept = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
  * 
  * @type {StrategyFn}
  */
- exports.Species = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
+exports.Race = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
-    reservedTokens: 0,
-    budgetPriority: 600,
-    insertionPosition: -1
+    reservedTokens: 100,
+    budgetPriority: -300,
+    insertionPosition: -10
   },
   entry: {
     searchRange: 2000
@@ -89,11 +73,11 @@ exports.Concept = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
  * 
  * @type {StrategyFn}
  */
- exports.Place = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
+exports.Place = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
-    reservedTokens: 0,
-    budgetPriority: 500,
-    insertionPosition: -1
+    reservedTokens: 100,
+    budgetPriority: -400,
+    insertionPosition: -10
   },
   entry: {
     searchRange: 3000
@@ -101,51 +85,33 @@ exports.Concept = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
 });
 
 /**
- * A note for characters.
+ * A note for factions.
  * 
  * @type {StrategyFn}
  */
- exports.Character = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
+exports.Faction = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
-    reservedTokens: 200,
-    budgetPriority: 400,
-    insertionPosition: -1
+    reservedTokens: 100,
+    budgetPriority: -500,
+    insertionPosition: -10
   },
   entry: {
-    searchRange: 2000
-  }
-});
-
-/**
- * Any supporting information for concept/faction/species/place/char entries.
- * A brace is typically used to reinforce an idea or concept that the AI has trouble remembering.
- * Can also be used to emphasize important information, ie character/species appearance, worn
- * clothing and motive.  Also should be used to describe relationships.
- * 
- * @type {StrategyFn}
- */
-exports.Brace = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
-  context: {
-    reservedTokens: 200,
-    budgetPriority: -400,
-    insertionPosition: -8
+    searchRange: 3000
   }
 });
 
 /**
  * Used as an Author's Note that describes the story as a whole.
- * Use tags like Genre, Themes, Setting etc.
- * 
- * Previously called "Editor's Note".
+ * Use tags like Genre, Themes, Setting, etc.
  * 
  * Recommendation: only provide one of these.
  * 
  * @type {StrategyFn}
  */
-exports.Synopsis = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
+exports.Overview = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
     reservedTokens: 200,
-    budgetPriority: -500,
+    budgetPriority: -600,
     insertionPosition: -8
   },
   entry: {
@@ -154,16 +120,34 @@ exports.Synopsis = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
 });
 
 /**
- * Same idea as a brace, but much closer to the front/bottom of
- * context for crucial information that needs to be highly emphasized.
+ * A note for factions.
  * 
  * @type {StrategyFn}
  */
-exports.Pillar = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
+exports.IrregularRace = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
     reservedTokens: 200,
-    budgetPriority: -600,
-    insertionPosition: -4
+    budgetPriority: -650,
+    insertionPosition: -7
+  },
+  entry: {
+    searchRange: 5000
+  }
+});
+
+/**
+ * A note for characters.
+ * 
+ * @type {StrategyFn}
+ */
+exports.Character = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
+  context: {
+    reservedTokens: 100,
+    budgetPriority: -700,
+    insertionPosition: -6
+  },
+  entry: {
+    searchRange: 3000
   }
 });
 
@@ -176,11 +160,9 @@ exports.Pillar = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
  */
 exports.Signpost = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
   context: {
-    prefix: "\n",
-    suffix: "\n\n",
-    reservedTokens: 3,
-    budgetPriority: 100,
-    insertionPosition: -1
+    reservedTokens: 200,
+    budgetPriority: -1000,
+    insertionPosition: -2
   },
   entry: {
     forceActivation: true
@@ -188,13 +170,19 @@ exports.Signpost = (baseConfig = {}) => exports.strategyBuilder(baseConfig, {
 });
 
 /**
- * A pre-made entry for the signpost, to save some time.
+ * A pre-made entry for the `***` signpost, to save some time.
  * 
  * @type {TLG.BuildableEntry}
  */
 exports.SignpostEntry = {
   name: "Signpost",
-  strategy: exports.Signpost(),
+  strategy: exports.Signpost({
+    context: {
+      prefix: "\n",
+      suffix: "\n\n",
+      budgetPriority: -1001
+    }
+  }),
   keys: [],
   text: "***"
 };
