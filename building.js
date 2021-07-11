@@ -133,10 +133,28 @@ exports.buildEntries = (config) => {
 
   const settings = { ...DEFAULTS.lorebookDefaults, ...givenSettings };
 
+  // Build the initial `context` and `entry` using the strategy.
+  const { context, entry } = dew(() => {
+    const { strategy } = restConfig;
+    if (!strategy) return {};
+
+    const state = {
+      context: { ...DEFAULTS.contextDefaults },
+      entry: { ...DEFAULTS.entryDefaults },
+      strategyStack: [],
+      depth: 0
+    };
+
+    const config = strategy.apply(state, strategy.config);
+    const context = strategy.context(state, config);
+    const entry = strategy.entry(state, config);
+    return { context, entry };
+  });
+
   /** @type {TLG.Config.State} */
   const initState = {
-    context: { ...DEFAULTS.contextDefaults },
-    entry: { ...DEFAULTS.entryDefaults },
+    context: { ...DEFAULTS.contextDefaults, ...context },
+    entry: { ...DEFAULTS.entryDefaults, ...entry },
     strategyStack: [],
     depth: 0
   };
