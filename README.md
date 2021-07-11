@@ -2,6 +2,9 @@
 This simple script is a tool to build `*.lorebook` files that feature more complex regular-expression
 keys and simplifies creating focused relationships between entries.
 
+## Try Online
+There is a [RunKit playground](https://runkit.com/taleirofdeynai/novelai-lorebook-helper) setup that does a good job of explaining the script and allows you play with it in your browser without needing to install Node.
+
 ## Installation
 1. Install [NodeJS](https://nodejs.org/en/) for your OS.
 2. Pull or download this repo so you have your own copy.
