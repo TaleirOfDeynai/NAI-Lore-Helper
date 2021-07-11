@@ -239,4 +239,9 @@ namespace TLG {
     entries: BuildableEntry[];
   }
 
+  interface WithDisplay {
+    /** Shorthand to convert to a JSON string for RunKit. */
+    forDisplay(): string;
+  }
+
 }

@@ -1,4 +1,4 @@
-const { getName, outputLorebook } = require("./utils");
+const { getName, saveLorebook } = require("./utils");
 const matching = require("./matching");
 const { buildEntries } = require("./building");
 const { DepthDelta } = require("./strategies/depthDelta");
@@ -317,4 +317,4 @@ const loreBook = buildEntries({
 
 // This all just writes the output to the filesystem.
 // It will use the name `example.lorebook`, since this file is called `example.js`.
-outputLorebook(getName(__filename), loreBook);
+saveLorebook(getName(__filename), loreBook);

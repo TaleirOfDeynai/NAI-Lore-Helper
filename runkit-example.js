@@ -385,4 +385,4 @@ const loreBook = LoreHelper.Building.buildEntries({
 });
 
 // Have RunKit display the result.
-loreBook;
+loreBook.forDisplay();

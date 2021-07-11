@@ -78,17 +78,25 @@ exports.getName = (filePath) => {
 };
 
 /**
- * Outputs a lorebook to the file system.
+ * Converts a lorebook to a user-readable JSON representation.
+ * 
+ * @param {NAI.LoreBook} lorebook 
+ * @returns {string}
+ */
+exports.outputLorebook = (lorebook) => JSON.stringify(lorebook, undefined, 2);
+
+/**
+ * Saves a lorebook to the file system.
  * 
  * @param {string} name 
- * @param {NAI.LoreBook} obj 
+ * @param {NAI.LoreBook} lorebook 
  */
-exports.outputLorebook = (name, obj) => {
+exports.saveLorebook = (name, lorebook) => {
   const fs = require("fs");
 
   fs.writeFile(
     `./${name}.lorebook`,
-    JSON.stringify(obj, undefined, 2),
+    exports.outputLorebook(lorebook),
     (err) => {
       if (err) console.error(err);
     }
