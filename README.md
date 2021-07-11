@@ -3,7 +3,9 @@ This simple script is a tool to build `*.lorebook` files that feature more compl
 keys and simplifies creating focused relationships between entries.
 
 ## Try Online
-There is a [RunKit playground](https://runkit.com/taleirofdeynai/novelai-lorebook-helper) setup that does a good job of explaining the script and allows you play with it in your browser without needing to install Node.
+There is a [RunKit playground](https://npm.runkit.com/novelai-lorebook-helper) setup that lets you run this script from your browser.  It's setup with the example that you can use as a base for your own lorebook.
+
+You will just need to copy the output into a `*.lorebook` file.
 
 ## Installation
 1. Install [NodeJS](https://nodejs.org/en/) for your OS.
