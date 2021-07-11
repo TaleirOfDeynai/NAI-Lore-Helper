@@ -1,10 +1,3 @@
-node_modules/**
-build/**
-scripts/**
-
-package-lock.json
-yarn.lock
-
 # Outputs from the script.
 *.lorebook
 

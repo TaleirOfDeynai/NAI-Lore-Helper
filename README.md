@@ -1,4 +1,4 @@
-# NovelAI Lore Helper
+# NovelAI Lorebook Helper
 This simple script is a tool to build `*.lorebook` files that feature more complex regular-expression
 keys and simplifies creating focused relationships between entries.
 

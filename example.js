@@ -76,7 +76,10 @@ const keys = {
   // A concept for social/cultural stuff.
   social: ["society", "culture", "live"],
   // A concept for religion.
-  religion: [/\breligi(on|ous)\b/, "myth", "lore", /\bdeit(y|ies)\b/, LIT("follower"), "church", "temple"],
+  religion: [
+    /\breligi(on|ous)\b/, /\bgods?\b/, /\bdeit(y|ies)\b/,
+    "lore", "myth", LIT("follower"), "church", "temple"
+  ],
   // Some concepts associated with a species in the world.
   vulpine: ["vulpine", "fox", "vixen"],
   deynai: [LIT("deynai"), LIT("deynian")],
