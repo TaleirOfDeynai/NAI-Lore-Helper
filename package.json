@@ -1,6 +1,6 @@
 {
   "name": "novelai-lorebook-helper",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A tool to build NovelAI lorebook files that simplifies building complex regular-expression keys and creating focused relationships between entries.",
   "license": "Unlicense",
   "author": {
@@ -15,7 +15,7 @@
     "url": "https://github.com/TaleirOfDeynai/NAI-Lore-Helper"
   },
   "main": "index.js",
-  "runkitExampleFile": "runkit-example.js",
+  "runkitExampleFilename": "runkit-example.js",
   "sideEffects": false,
   "dependencies": {}
 }
