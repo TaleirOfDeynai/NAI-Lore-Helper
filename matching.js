@@ -116,7 +116,7 @@ exports.toEscaped = (pattern) => {
  * @returns {TLG.Matching.EscapedRegex}
  */
 exports.asEscaped = (phrase) => {
-  if (phrase instanceof RegExp) return this.toEscaped(`(?:${phrase.source})`);
+  if (phrase instanceof RegExp) return this.toEscaped(phrase.source);
   if (exports.isPhraseExp(phrase)) return exports.evalExp(phrase);
   if (exports.isEscaped(phrase)) return phrase;
   return exports.PRE(phrase);
@@ -168,7 +168,7 @@ exports.OPEN = (word) => exports.toEscaped(`${OE}${exports.escapeRegExp(word)}`)
  */
 exports.REGEX = (regex) => {
   const match = reNaiRegex.exec(regex);
-  if (match) return exports.toEscaped(`(?:${match[1]})`);
+  if (match) return exports.toEscaped(match[1]);
   throw new Error(`Not compatible with NovelAI's regular-expressions: ${regex}`);
 };
 
@@ -207,7 +207,7 @@ exports.ALT = (...alternates) => {
 exports.AND = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`(?:${reRight}(?:(?=${AC}*?${reLeft})|(?<=${reLeft}${AC}*?)))`);
+  return exports.toEscaped(`${reLeft}(?:(?=${AC}*?${reRight})|(?<=${reRight}${AC}*?))`);
 };
 
 /**
@@ -221,7 +221,7 @@ exports.AND = (left, right) => {
  exports.EXCLUDING = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`(?:${reLeft}(?<!${reRight}${AC}*?)(?!${AC}*?${reRight}))`);
+  return exports.toEscaped(`${reLeft}(?<!${reRight}${AC}*?)(?!${AC}*?${reRight})`);
 };
 
 /**
@@ -234,7 +234,7 @@ exports.AND = (left, right) => {
 exports.WITH = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`(?:${reRight}(?:(?<=${reLeft}.*?)|(?=.*?${reLeft})))`);
+  return exports.toEscaped(`${reLeft}(?:(?<=${reRight}.*?)|(?=.*?${reRight}))`);
 };
 
 /**
@@ -247,7 +247,7 @@ exports.WITH = (left, right) => {
 exports.WITHOUT = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`(?:${reLeft}(?<!${reRight}.*?)(?!.*?${reRight}))`);
+  return exports.toEscaped(`${reLeft}(?<!${reRight}.*?)(?!.*?${reRight})`);
 };
 
 exports.NEAR = asExtBinaryOp(
@@ -285,9 +285,9 @@ exports.NEAR = asExtBinaryOp(
       const reRight = exports.asEscaped(right);
       const NW = sameLine ? NWLB : "\\W";
       const sep = `(?:${NW}+\\w+){${lo},${hi}}?\\W+`
-      const behind = `(?:(?:${reRight}${sep})${reLeft})`;
-      const ahead = `(?:${reLeft}(?:${sep}${reRight}))`;
-      return exports.toEscaped(`(?:${behind}|${ahead})`);
+      const behind = `(?:${reRight}${sep})${reLeft}`;
+      const ahead = `${reLeft}(?:${sep}${reRight})`;
+      return exports.toEscaped(`${behind}|${ahead}`);
     };
 
     return matcher;
@@ -314,9 +314,9 @@ exports.BEYOND = asExtBinaryOp(
       const reRight = exports.asEscaped(right);
       const NW = sameLine ? NWLB : "\\W";
       const sep = `(?:${NW}+\\w+){${distance},}?\\W+`
-      const behind = `(?:(?:${reRight}${sep})${reLeft})`;
-      const ahead = `(?:${reLeft}(?:${sep}${reRight}))`;
-      return exports.toEscaped(`(?:${behind}|${ahead})`);
+      const behind = `(?:${reRight}${sep})${reLeft}`;
+      const ahead = `${reLeft}(?:${sep}${reRight})`;
+      return exports.toEscaped(`${behind}|${ahead}`);
     };
   
     return matcher;
