@@ -90,11 +90,15 @@ exports.yieldEntries = function*(entry, state, defaultsForEntry) {
 
   if (childEntries.length === 0) return;
 
-  // Ask the strategy to determine a configuration to build the next `state` for the
-  // child entires.  We build an intermediate state from this, which doesn't include
-  // the `forceActivation` shenanigans (but the `entryConfig` may still have been
-  // affected by it when generated).
-  const intermediateState = { ...state, context: contextConfig, entry: entryConfig };
+  // Ask the strategy to determine a configuration to build the next `state` for
+  // the child entires.  We build an intermediate state that doesn't have the
+  // forced-activation shenanigans.
+  const intermediateState = {
+    ...state,
+    context: contextConfig,
+    entry: parentStrategy.entry(state, curConfig)
+  };
+
   const nextConfig = parentStrategy.extend(intermediateState, curConfig);
   const nextState = {
     context: parentStrategy.context(intermediateState, nextConfig),
