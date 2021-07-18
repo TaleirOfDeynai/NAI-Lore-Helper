@@ -35,7 +35,7 @@ exports.yieldChildKeys = function*(parentKeys = [], subOp, childKeys) {
   });
 
   for (const childKey of childKeys)
-    yield matching.evalExp([altKeys, subOp, childKey]);
+    yield matching.evalExp([childKey, subOp, altKeys]);
 };
 
 /**
