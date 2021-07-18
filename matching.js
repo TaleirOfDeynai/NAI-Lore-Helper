@@ -207,7 +207,9 @@ exports.ALT = (...alternates) => {
 exports.AND = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`${reLeft}(?:(?=${AC}*?${reRight})|(?<=${reRight}${AC}*?))`);
+  const ahead = `(?=${AC}*?${reRight})`;
+  const behind = `(?<=${reRight}${AC}*?${reLeft})`;
+  return exports.toEscaped(`${reLeft}(?:${ahead}|${behind})`);
 };
 
 /**
@@ -221,7 +223,9 @@ exports.AND = (left, right) => {
  exports.EXCLUDING = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`${reLeft}(?<!${reRight}${AC}*?)(?!${AC}*?${reRight})`);
+  const ahead = `(?!${AC}*?${reRight})`;
+  const behind = `(?<!${reRight}${AC}*?${reLeft})`;
+  return exports.toEscaped(`${reLeft}${ahead}${behind}`);
 };
 
 /**
@@ -234,7 +238,9 @@ exports.AND = (left, right) => {
 exports.WITH = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`${reLeft}(?:(?<=${reRight}.*?)|(?=.*?${reRight}))`);
+  const ahead = `(?=.*?${reRight})`;
+  const behind = `(?<=${reRight}.*?${reLeft})`;
+  return exports.toEscaped(`${reLeft}(?:${ahead}|${behind})`);
 };
 
 /**
@@ -247,15 +253,17 @@ exports.WITH = (left, right) => {
 exports.WITHOUT = (left, right) => {
   const reLeft = exports.asEscaped(left);
   const reRight = exports.asEscaped(right);
-  return exports.toEscaped(`${reLeft}(?<!${reRight}.*?)(?!.*?${reRight})`);
+  const ahead = `(?!.*?${reRight})`;
+  const behind = `(?<!${reRight}.*?${reLeft})`;
+  return exports.toEscaped(`${reLeft}${ahead}${behind}`);
 };
 
 exports.NEAR = asExtBinaryOp(
   /**
-   * Creates an operator that can match two phrases when they are in proximity to each other.
+   * Creates an operator that matches the left phrase when in proximity to the right phrase.
    * 
    * Supports options for range (defaults to 10 words) and whether the search can extends
-   * beyond a single line (default is to disallow it).
+   * beyond a single line (default is to search the same line only).
    * 
    * @param {number | [number, number]} [range]
    * How near the two words must.
@@ -284,10 +292,10 @@ exports.NEAR = asExtBinaryOp(
       const reLeft = exports.asEscaped(left);
       const reRight = exports.asEscaped(right);
       const NW = sameLine ? NWLB : "\\W";
-      const sep = `(?:${NW}+\\w+){${lo},${hi}}?\\W+`
-      const behind = `(?:${reRight}${sep})${reLeft}`;
-      const ahead = `${reLeft}(?:${sep}${reRight})`;
-      return exports.toEscaped(`${behind}|${ahead}`);
+      const sep = `(?:${NW}+\\w+){${lo},${hi}}?\\W+`;
+      const ahead = `(?=${sep}${reRight})`;
+      const behind = `(?<=${reRight}${sep}${reLeft})`;
+      return exports.toEscaped(`${reLeft}(?:${ahead}|${behind})`);
     };
 
     return matcher;
@@ -296,10 +304,10 @@ exports.NEAR = asExtBinaryOp(
 
 exports.BEYOND = asExtBinaryOp(
   /**
-   * Creates an operator that can match two phrases when they are NOT in proximity to each other.
+   * Creates an operator that matches the left phrase when NOT proximity to the right phrase.
    * 
    * Supports options for range (defaults to 10 words) and whether the search can extends beyond
-   * a single line (default is to disallow it).
+   * a single line (default is to search the same line only).
    * 
    * @param {number} [distance]
    * How distant the two words must be.
@@ -313,10 +321,10 @@ exports.BEYOND = asExtBinaryOp(
       const reLeft = exports.asEscaped(left);
       const reRight = exports.asEscaped(right);
       const NW = sameLine ? NWLB : "\\W";
-      const sep = `(?:${NW}+\\w+){${distance},}?\\W+`
-      const behind = `(?:${reRight}${sep})${reLeft}`;
-      const ahead = `${reLeft}(?:${sep}${reRight})`;
-      return exports.toEscaped(`${behind}|${ahead}`);
+      const sep = `(?:${NW}+\\w+){${distance},}?\\W+`;
+      const ahead = `(?!${sep}${reRight})`;
+      const behind = `(?<!${reRight}${sep}${reLeft})`;
+      return exports.toEscaped(`${reLeft}${ahead}${behind}`);
     };
   
     return matcher;
