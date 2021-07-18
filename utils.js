@@ -56,14 +56,64 @@ exports.is = {
   /** @type {TLG.TypePredicate<Function>} */
   function: (value) => typeof value === "function",
   /** @type {TLG.TypePredicate<Object>} */
-  object: (value) => typeof value === "object",
+  object: (value) => value && typeof value === "object",
   /** @type {TLG.TypePredicate<any[]>} */
   array: (value) => Array.isArray(value),
   /** @type {TLG.TypePredicate<string>} */
   string: (value) => typeof value === "string",
   /** @type {TLG.TypePredicate<number>} */
-  number: (value) => typeof value === "number" 
+  number: (value) => typeof value === "number",
+  /** A bare object that inherits from only `Object` or nothing. */
+  pojo: exports.dew(() => {
+    const POJO_PROTOS = [Object.prototype, null];
+    /** @type {TLG.TypePredicate<Object>} */
+    const innerFn = (value) => {
+      if (!exports.is.object(value)) return false;
+      return POJO_PROTOS.includes(Object.getPrototypeOf(value));
+    };
+    return innerFn;
+  })
 };
+
+/** Deeply merges multiple POJO objects together. */
+exports.deepMerge = exports.dew(() => {
+  const { pojo: isPojo } = exports.is;
+
+  /** @type {(...objects: Object[]) => Iterable<string>} */
+  function* keysOf(...objects) {
+    for (const obj of objects) yield* Object.keys(obj);
+  }
+
+  /** @type {(...objects: any[]) => Iterable<[string, Object[]]>} */
+  function* pojoValues(...objects) {
+    if (!objects.every((obj) => isPojo(obj))) return;
+
+    const keys = new Set(keysOf(...objects));
+    keyLoop: for (const key of keys) {
+      const values = [];
+      objLoop: for (const obj of objects) {
+        const value = obj[key];
+        if (value == null) continue objLoop;
+        if (!isPojo(value)) continue keyLoop;
+        values.push(value);
+      }
+
+      yield exports.tuple(key, values);
+    }
+  }
+
+  /** @type {(...objects: Object[]) => Object} */
+  const innerFn = (...objects) => {
+    const baseObj = Object.assign({}, ...objects);
+    for (const [key, values] of pojoValues(...objects)) {
+      if (values.length <= 1) continue;
+      baseObj[key] = innerFn(...values);
+    }
+    return baseObj;
+  };
+
+  return innerFn;
+});
 
 /**
  * Extracts a name from a file path.  Pass in `__filename` to get the nam
