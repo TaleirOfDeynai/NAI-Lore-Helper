@@ -321,7 +321,7 @@ exports.BEYOND = asExtBinaryOp(
       const reLeft = exports.asEscaped(left);
       const reRight = exports.asEscaped(right);
       const NW = sameLine ? NWLB : "\\W";
-      const sep = `(?:${NW}+\\w+){${distance},}?\\W+`;
+      const sep = `(?:${NW}+\\w+){0,${distance}}?\\W+`;
       const ahead = `(?!${sep}${reRight})`;
       const behind = `(?<!${reRight}${sep}${reLeft})`;
       return exports.toEscaped(`${reLeft}${ahead}${behind}`);
