@@ -174,7 +174,7 @@ namespace TLG {
      * 
      * Defaults to the value of `rootOp`.
      */
-     subOp?: PhraseOperator;
+     subOp?: Matching.PhraseOperator;
   }
 
   interface BuildableEntry extends BuildableEntryConfig {
@@ -193,19 +193,19 @@ namespace TLG {
      * When this is a function, it will receive the parent keys, allowing you to
      * manipulate or add to the keys without fully replacing them.
      */
-    baseKeys?: PhraseOperand[] | ((baseKeys: PhraseOperand[]) => PhraseOperand[]);
+    baseKeys?: Matching.PhraseOperand[] | ((baseKeys: Matching.PhraseOperand[]) => Matching.PhraseOperand[]);
 
     /**
      * The operator that will be used to join the `baseKeys` with the `keys`.
      * 
      * Defaults to `AND`.
      */
-    baseOp?: PhraseOperator;
+    baseOp?: Matching.PhraseOperator;
 
     /**
      * The keys for the entry.  May be an empty array, but must be present.
      */
-    keys: PhraseOperand[];
+    keys: Matching.PhraseOperand[];
 
     /**
      * A string or several strings that will each be converted into an entry.
