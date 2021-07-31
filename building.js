@@ -168,7 +168,7 @@ exports.buildEntries = (config) => {
   );
 
   /** @type {NAI.LoreBook} */
-  const result = { lorebookVersion: 1, settings, entries };
+  const result = { lorebookVersion: 2, settings, entries };
 
   return {
     ...result,

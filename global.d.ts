@@ -40,7 +40,7 @@ namespace NAI {
   }
 
   interface LoreBook {
-    lorebookVersion: 1;
+    lorebookVersion: 2;
     settings: LoreBookConfig;
     entries: LoreEntry[];
   }
