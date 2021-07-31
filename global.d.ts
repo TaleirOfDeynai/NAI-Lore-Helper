@@ -53,6 +53,15 @@ namespace TLG {
 
   type TypePredicate<T> = (value: any) => value is T;
 
+  interface BuilderSettings {
+    /**
+     * Iterates through the `text` of a `BuildableEntry` in reverse, which
+     * is useful for maintaining the same presentation order when inserting
+     * entries after the story has been inserted.
+     */
+    reversedTextIteration: boolean;
+  }
+
   namespace Matching {
     interface EscapedRegex {
       isEscaped: true;
@@ -89,7 +98,7 @@ namespace TLG {
       entry: NAI.LoreEntryConfig;
     }
 
-    interface State extends CommonConfig {
+    interface State extends BuilderSettings, CommonConfig {
       /**
        * A list of strategies already applied by ancestor `TLG.BuildableEntry`.
        * 
@@ -233,7 +242,7 @@ namespace TLG {
     /**
      * Settings for the lorebook itself.
      */
-    settings?: Partial<NAI.LoreBookConfig>;
+    settings?: Partial<NAI.LoreBookConfig & BuilderSettings>;
 
     /**
      * The list of `TLG.BuildableEntry` to build `NAI.LoreEntry` from.

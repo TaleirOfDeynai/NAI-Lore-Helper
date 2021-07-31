@@ -1,6 +1,16 @@
 const { dew, ident, asArray, is } = require("./utils");
+const { chain, iterReverse, iterPosition } = require("./utils/iterables");
 const DEFAULTS = require("./strategies/_naiDefaults");
 const matching = require("./matching");
+
+/**
+ * The default `BuilderSettings`.
+ * 
+ * @type {TLG.BuilderSettings}
+ */
+const tlgBuilderConfigDefaults = {
+  reversedTextIteration: false
+};
 
 /**
  * The default `BuildableEntryConfig` for `BuildableEntry`.
@@ -39,6 +49,102 @@ exports.yieldChildKeys = function*(parentKeys = [], subOp, childKeys) {
 };
 
 /**
+ * @param {string} name
+ * @param {TLG.Config.State} state
+ * @param {Object} input
+ * @param {TLG.Config.Strategy<string, any>} input.strategy
+ * @param {any} input.config
+ * @param {string[]} input.text
+ * @param {string[]} input.keys
+ * @returns {{ context: NAI.ContextConfig, entries: Iterable<NAI.LoreEntry> }}
+ */
+exports.entriesByText = (name, state, input) => {
+  const { strategy, config, keys } = input;
+
+  // Apply configuration overrides.
+  const usedState = dew(() => {
+    if (keys.length > 0) return state;
+
+    // If we have no keys, default to activating forcibly.
+    const { entry: { forceActivation: _, ...restEntry }, ...restState } = state;
+    return { ...restState, entry: { ...restEntry, forceActivation: true } };
+  });
+  const contextConfig = strategy.context(usedState, config);
+  const entryConfig = strategy.entry(usedState, config);
+
+  const textCount = input.text.length;
+  const entryIterator = chain(input.text)
+    .thru(iterPosition)
+    .thru(state.reversedTextIteration ? iterReverse : ident)
+    .map(([i, text]) => {
+      const displayName = textCount === 1 ? name : `${name} (${i + 1} of ${textCount})`;
+      return { ...entryConfig, displayName, text, keys, contextConfig };
+    })
+    .value();
+  
+  // Return the `contextConfig` too, as the sub-entries rely on it.
+  return { context: contextConfig, entries: entryIterator };
+};
+
+/**
+ * @param {string} name
+ * @param {TLG.Config.State} state
+ * @param {Object} input
+ * @param {TLG.Config.Strategy<string, any>} input.strategy
+ * @param {any} input.config
+ * @param {NAI.ContextConfig} input.context
+ * @param {TLG.Matching.PhraseOperator} input.subOp
+ * @param {TLG.BuildableEntry[]} input.entries
+ * @param {TLG.Matching.PhraseOperand[]} input.keys
+ * @returns {{ entries: Iterable<NAI.LoreEntry> }}
+ */
+exports.entriesByChildren = (name, state, input) => {
+  if (input.entries.length === 0) return { entries: [] };
+
+  const { strategy } = input;
+
+  // Ask the strategy to determine a configuration to build the next `state` for
+  // the child entires.  We build an intermediate state that doesn't have the
+  // forced-activation shenanigans.
+  const intermediateState = {
+    ...state,
+    context: input.context,
+    entry: strategy.entry(state, input.config)
+  };
+
+  const nextConfig = strategy.extend(intermediateState, input.config);
+  const nextState = {
+    context: strategy.context(intermediateState, nextConfig),
+    entry: strategy.entry(intermediateState, nextConfig),
+    strategyStack: [...state.strategyStack, strategy],
+    depth: state.depth + 1,
+    reversedTextIteration: state.reversedTextIteration
+  };
+  const childEntryConfig = { strategy, subOp: input.subOp };
+
+  const entriesOut = chain(input.entries)
+    .map((subEntry) => {
+      const {
+        name: childName,
+        baseKeys: childBaseKeys = ident,
+        ...restOfEntry
+      } = subEntry;
+  
+      return {
+        baseOp: input.subOp,
+        ...restOfEntry,
+        name: `${name} - ${childName}`,
+        baseKeys: is.function(childBaseKeys) ? childBaseKeys(input.keys) : childBaseKeys
+      };
+    })
+    .map((newEntry) => exports.yieldEntries(newEntry, nextState, childEntryConfig))
+    .flatten()
+    .value();
+
+  return { entries: entriesOut };
+}
+
+/**
  * 
  * @param {TLG.BuildableEntry} entry
  * @param {TLG.Config.State} state
@@ -50,79 +156,50 @@ exports.yieldEntries = function*(entry, state, defaultsForEntry) {
 
   const {
     name,
-    strategy: parentStrategy = defStrategy,
+    strategy = defStrategy,
     baseOp = defOp,
-    baseKeys: parentBase = [],
+    baseKeys = [],
     keys: givenKeys,
     text: givenText = [],
-    subOp: parentOp = baseOp,
+    subOp = baseOp,
     subEntries: childEntries = []
   } = entry;
 
-  const parentKeys = dew(() => {
+  const composedKeys = dew(() => {
     // When a function is provided for a root entry, it can still be a function.
     // In all other cases, we'll have converted it to an array when constructing
     // the child below.
-    const theBaseKeys = is.function(parentBase) ? parentBase([]) : parentBase;
+    const theBaseKeys = is.function(baseKeys) ? baseKeys([]) : baseKeys;
     return [...exports.yieldChildKeys(theBaseKeys, baseOp, givenKeys)]
   });
 
-  const entries = asArray(givenText);
-  const keys = parentKeys.map((key) => matching.asEscaped(key).toNAI());
+  const text = asArray(givenText);
+  const keys = composedKeys.map((key) => matching.asEscaped(key).toNAI());
 
   // Get strategy configuration.
-  const curConfig = parentStrategy.apply(state, parentStrategy.config);
-  // Apply configuration overrides.
-  const usedState = dew(() => {
-    if (keys.length > 0) return state;
+  const curConfig = strategy.apply(state, strategy.config);
 
-    // If we have no keys, default to activating forcibly.
-    const { entry: { forceActivation: _, ...restEntry }, ...restState } = state;
-    return { ...restState, entry: { ...restEntry, forceActivation: true } };
-  });
-  const contextConfig = parentStrategy.context(usedState, curConfig);
-  const entryConfig = parentStrategy.entry(usedState, curConfig);
-
-  yield* entries.map((text, i, arr) => {
-    const displayName = arr.length === 1 ? name : `${name} (${i + 1} of ${arr.length})`;
-    return { ...entryConfig, displayName, text, keys, contextConfig };
+  const byText = exports.entriesByText(name, state, {
+    strategy,
+    text, keys,
+    config: curConfig
   });
 
-  if (childEntries.length === 0) return;
+  const byChildren = exports.entriesByChildren(name, state, {
+    strategy, subOp,
+    config: curConfig,
+    context: byText.context,
+    entries: childEntries,
+    keys: composedKeys
+  });
 
-  // Ask the strategy to determine a configuration to build the next `state` for
-  // the child entires.  We build an intermediate state that doesn't have the
-  // forced-activation shenanigans.
-  const intermediateState = {
-    ...state,
-    context: contextConfig,
-    entry: parentStrategy.entry(state, curConfig)
-  };
-
-  const nextConfig = parentStrategy.extend(intermediateState, curConfig);
-  const nextState = {
-    context: parentStrategy.context(intermediateState, nextConfig),
-    entry: parentStrategy.entry(intermediateState, nextConfig),
-    strategyStack: [...state.strategyStack, parentStrategy],
-    depth: state.depth + 1
-  };
-  const childEntryConfig = { strategy: parentStrategy, subOp: parentOp };
-
-  for (const childEntry of childEntries) {
-    const {
-      name: childName,
-      baseKeys: childBaseKeys = ident,
-      ...restOfEntry
-    } = childEntry;
-
-    const newEntry = {
-      baseOp: parentOp,
-      ...restOfEntry,
-      name: `${name} - ${childName}`,
-      baseKeys: is.function(childBaseKeys) ? childBaseKeys(parentKeys) : childBaseKeys
-    };
-
-    yield* exports.yieldEntries(newEntry, nextState, childEntryConfig);
+  if (state.reversedTextIteration) {
+    yield* byChildren.entries;
+    yield* byText.entries;
+  }
+  else {
+    yield* byText.entries;
+    yield* byChildren.entries;
   }
 };
 
@@ -135,7 +212,13 @@ exports.buildEntries = (config) => {
   const { entries: rootEntries, settings: givenSettings, ...restConfig } = config;
   const initEntryConfig = { ...tlgBuildableDefaults, ...restConfig };
 
-  const settings = { ...DEFAULTS.lorebookDefaults, ...givenSettings };
+  const resolvedSettings = {
+    ...DEFAULTS.lorebookDefaults,
+    ...tlgBuilderConfigDefaults,
+    ...givenSettings
+  };
+
+  const { reversedTextIteration, ...settings } = resolvedSettings;
 
   // Build the initial `context` and `entry` using the strategy.
   const { context, entry } = dew(() => {
@@ -146,7 +229,8 @@ exports.buildEntries = (config) => {
       context: { ...DEFAULTS.contextDefaults },
       entry: { ...DEFAULTS.entryDefaults },
       strategyStack: [],
-      depth: 0
+      depth: 0,
+      reversedTextIteration
     };
 
     const config = strategy.apply(state, strategy.config);
@@ -160,7 +244,8 @@ exports.buildEntries = (config) => {
     context: { ...DEFAULTS.contextDefaults, ...context },
     entry: { ...DEFAULTS.entryDefaults, ...entry },
     strategyStack: [],
-    depth: 0
+    depth: 0,
+    reversedTextIteration
   };
   
   const entries = rootEntries.flatMap(
