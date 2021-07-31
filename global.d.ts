@@ -1,9 +1,11 @@
-/** The primative data-types. */
-type Primatives = number | string | boolean | Function | {};
+/** The primitive data-types. */
+type Primitives = number | string | boolean | Function | {};
 
 type DefinedOf<T extends {}> = {
   [K in keyof T]?: T[K] extends undefined ? never : T[K];
 };
+
+type Maybe<T> = T | null | undefined;
 
 namespace NAI {
 

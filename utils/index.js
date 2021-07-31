@@ -17,6 +17,14 @@ exports.dew = (fn) => fn();
 exports.ident = (value) => value;
 
 /**
+ * The identity function, but it casts to `any`.
+ * 
+ * @param {any} value 
+ * @returns {any}
+ */
+exports.castTo = (value) => value;
+
+/**
  * Coerces a value to an array.
  * 
  * @template T
@@ -29,12 +37,11 @@ exports.asArray = (value) => Array.isArray(value) ? value : [value];
  * Creates a strongly-typed tuple of any size, but supports only simpler
  * primatives: `number`, `string`, `boolean`, functions, and plain objects.
  * 
- * @template {readonly Primatives[]} T
+ * @template {readonly Primitives[]} T
  * @param {T} args
  * @returns {[...T]}
  */
-// @ts-ignore - The `readonly` modifier is only used to infer literal types.
-exports.tuple = (...args) => args;
+exports.tuple = (...args) => exports.castTo(args);
 
 /**
  * @template {{}} TObj
